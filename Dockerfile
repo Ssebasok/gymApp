@@ -1,6 +1,6 @@
 FROM php:8.3-apache
 
-# Activar mod_rewrite y dependencias necesarias
+# Instalar dependencias y extensiones PHP necesarias
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev libicu-dev libonig-dev \
  && docker-php-ext-install pdo pdo_mysql bcmath intl zip \
@@ -14,9 +14,10 @@ WORKDIR /var/www/html
 # Copiar el proyecto Laravel al contenedor
 COPY . /var/www/html
 
-# Configurar DocumentRoot en /public y habilitar .htaccess
+# Configurar Apache para usar /public como DocumentRoot
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
  && echo '<Directory /var/www/html/public>\n\
+    Options Indexes FollowSymLinks\n\
     AllowOverride All\n\
     Require all granted\n\
 </Directory>' >> /etc/apache2/apache2.conf
@@ -31,4 +32,3 @@ RUN [ -f .env ] || cp .env.example .env \
 
 EXPOSE 80
 CMD ["apache2-foreground"]
-
